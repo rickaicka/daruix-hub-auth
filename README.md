@@ -1,59 +1,161 @@
-# DaruixHubAuth
-
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.17.
-
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
+Daruix Hub Auth (`@daruix/hub-auth`)
+Biblioteca compartilhada de autenticação, sessão, permissões e interceptors para o Daruix Hub e seus micro front-ends.
+Visão geral
+O objetivo desta lib é permitir que o Shell e os MFEs compartilhem a mesma sessão de usuário sem acoplar os MFEs diretamente à `AuthStore` do Shell.
+O Shell continua responsável por login, logout e chamadas de autenticação. Os MFEs consomem apenas a sessão compartilhada exposta por esta biblioteca.
+Pacote npm
+```txt
+@daruix/hub-auth
 ```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+Stack principal
+Angular 21
+TypeScript
+ng-packagr
+Signals
+Functional HTTP Interceptor
+Functional Guards
+Instalação
 ```bash
-ng generate component component-name
+npm install @daruix/hub-auth
 ```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+Para desenvolvimento local, também é possível instalar a partir do build local:
 ```bash
-ng generate --help
+npm install ../daruix-hub-auth/dist/hub-auth
 ```
+Estrutura principal
+```txt
+projects/hub-auth/src/lib/
+├─ guards/
+│  ├─ hub-auth.guard.ts
+│  └─ hub-permission.guard.ts
+├─ interceptors/
+│  └─ hub-auth.interceptor.ts
+├─ models/
+│  └─ hub-auth.models.ts
+├─ services/
+│  └─ hub-session.service.ts
+└─ tokens/
+   └─ hub-auth-storage.tokens.ts
+```
+Modelos principais
+A lib trabalha com o usuário retornado pelo backend do Daruix Hub, incluindo permissões e módulos:
+```ts
+export interface HubUser {
+  id_usuario: number;
+  username: string;
+  nome: string;
+  email: string;
+  tipo_usuario: string;
+  grupo: string;
+  permissoes: string[];
+  modulos: HubModulo[];
+  origem: string;
+  ativo: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
+}
+```
+HubSessionService
+Serviço compartilhado responsável por:
+salvar sessão no storage;
+recuperar sessão salva;
+limpar sessão;
+expor usuário por signal;
+verificar permissões;
+verificar módulos disponíveis.
+Exemplo:
+```ts
+import { Component, computed, inject } from '@angular/core';
+import { HubSessionService } from '@daruix/hub-auth';
 
-## Building
+@Component({
+  selector: 'app-example',
+  standalone: true,
+  template: `
+    <p>Olá, {{ nomeUsuario() }}</p>
+  `
+})
+export class ExampleComponent {
+  private readonly session = inject(HubSessionService);
 
-To build the project run:
+  readonly usuario = this.session.usuario;
+  readonly nomeUsuario = computed(() =>
+    this.usuario()?.nome ?? this.usuario()?.username ?? 'Usuário'
+  );
+}
+```
+Interceptor JWT
+Use o interceptor para aplicar automaticamente o token nas chamadas HTTP:
+```ts
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { hubAuthInterceptor } from '@daruix/hub-auth';
 
+export const appConfig = {
+  providers: [
+    provideHttpClient(
+      withInterceptors([hubAuthInterceptor])
+    )
+  ]
+};
+```
+Guards
+Autenticação
+```ts
+import { hubAuthGuard } from '@daruix/hub-auth';
+```
+Permissão
+```ts
+import { hubPermissionGuard } from '@daruix/hub-auth';
+```
+Exemplo:
+```ts
+{
+  path: 'financeiro',
+  canActivate: [hubPermissionGuard],
+  data: {
+    permission: 'financeiro.ver'
+  },
+  loadChildren: () => import('./financeiro.routes').then(r => r.routes)
+}
+```
+Build
 ```bash
-ng build
+npm run build:auth
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
+O build é gerado em:
+```txt
+dist/hub-auth
+```
+Empacotar localmente
 ```bash
-ng test
+npm run pack:auth
 ```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
+Publicação
 ```bash
-ng e2e
+npm run publish:auth
 ```
+Antes de publicar nova versão:
+```bash
+npm run version:auth:patch
+```
+Native Federation
+No Shell e nos MFEs, compartilhe a lib como singleton:
+```js
+shared: {
+  ...shareAll({
+    singleton: true,
+    strictVersion: true,
+    requiredVersion: 'auto'
+  }),
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+  '@daruix/hub-auth': {
+    singleton: true,
+    strictVersion: true,
+    requiredVersion: 'auto'
+  }
+}
+```
+Repositórios relacionados
+`daruix-hub-shell`
+`mfe-memorando-remessa`
+`daruix-ds`
