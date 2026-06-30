@@ -17,6 +17,9 @@
     "pack:auth": "npm run build:auth && cd dist/hub-auth && npm pack",
     "publish:auth": "npm run build:auth && cd dist/hub-auth && npm publish --access public",
 
+    "install:shell": "npm run build:auth && cd ../daruix-hub-shell && npm install ../daruix-hub-auth/dist/hub-auth",
+    "install:mfe-remessas": "npm run build:auth && cd ../daruix-mfe-remessas && npm install ../daruix-hub-auth/dist/hub-auth",
+
     "version:auth:patch": "npm version patch --prefix projects/hub-auth --no-git-tag-version",
     "version:auth:minor": "npm version minor --prefix projects/hub-auth --no-git-tag-version",
     "version:auth:major": "npm version major --prefix projects/hub-auth --no-git-tag-version",

@@ -40,20 +40,21 @@ export class HubSessionService {
   );
 
   readonly userPermissions = computed(() =>
-    this.usuario()?.permissions ?? []
+    this.usuario()?.permissoes ?? []
   );
 
-  readonly userApps = computed(() =>
-    this.usuario()?.apps ?? []
+  readonly userModules = computed(() =>
+    this.usuario()?.modulos ?? []
   );
 
   hasPermission(permission: string): boolean {
     return this.userPermissions().includes(permission);
   }
 
-  hasApp(appId: string): boolean {
-    return this.userApps().includes(appId);
+  hasModule(moduleSlug: string): boolean {
+    return this.userModules().some((modulo) => modulo.slug === moduleSlug);
   }
+
 
   setSession(params: {
     usuario: HubUser;

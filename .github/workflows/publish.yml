@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org/'
+          scope: '@daruix'
           cache: npm
 
       - name: Install dependencies
@@ -31,6 +32,13 @@ jobs:
       - name: Build Auth library
         run: npm run build:auth
 
+      - name: Verify npm auth
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish to npm
         working-directory: dist/hub-auth
         run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
