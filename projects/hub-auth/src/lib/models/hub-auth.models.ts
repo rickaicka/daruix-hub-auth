@@ -14,6 +14,7 @@ export interface HubModulo {
   mobile_enabled: boolean;
   mfe_enabled: boolean;
   legacy_enabled: boolean;
+  favorito: boolean;
   remote: HubRemoteModule | null;
 }
 
