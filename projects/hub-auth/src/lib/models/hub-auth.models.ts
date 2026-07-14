@@ -33,8 +33,30 @@ export interface HubUser {
   is_superuser: boolean;
 }
 
-export interface HubSession {
+export interface HubSessionInfo {
+  id: string;
+  expira_em: string;
+  inatividade_minutos: number;
+}
+
+export interface HubAuthState {
   usuario: HubUser | null;
   accessToken: string | null;
   refreshToken: string | null;
+  sessao: HubSessionInfo | null;
+}
+
+export interface HubLoginResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: 'bearer';
+  usuario: HubUser;
+  sessao: HubSessionInfo;
+}
+
+export interface HubRefreshResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: 'bearer';
+  sessao: HubSessionInfo;
 }

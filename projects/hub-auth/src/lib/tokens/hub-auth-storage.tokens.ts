@@ -23,3 +23,11 @@ export const HUB_USER_KEY = new InjectionToken<string>(
     factory: () => 'daruix_hub_user',
   }
 );
+
+export const HUB_SESSION_KEY = new InjectionToken<string>(
+  'HUB_SESSION_KEY',
+  {
+    providedIn: 'root',
+    factory: () => 'daruix_hub_session',
+  }
+);
