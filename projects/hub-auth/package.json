@@ -1,6 +1,13 @@
 {
   "name": "@daruix/hub-auth",
   "version": "0.0.8",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rickaicka/daruix-hub-auth.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "@angular/common": "^21.2.0",
     "@angular/core": "^21.2.0",
