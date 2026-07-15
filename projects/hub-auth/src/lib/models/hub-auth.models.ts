@@ -10,12 +10,20 @@ export interface HubModulo {
   rota: string;
   icone: string;
   permissao: string;
+
   desktop_enabled: boolean;
   mobile_enabled: boolean;
   mfe_enabled: boolean;
   legacy_enabled: boolean;
   favorito: boolean;
+
   remote: HubRemoteModule | null;
+
+  /**
+   * Submódulos ou funcionalidades internas exibidas
+   * dentro do card do módulo principal.
+   */
+  children?: HubModulo[];
 }
 
 export interface HubUser {
