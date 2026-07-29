@@ -10,12 +10,13 @@ export interface HubModulo {
   rota: string;
   icone: string;
   permissao: string;
-
+  cor_icone: string;
   desktop_enabled: boolean;
   mobile_enabled: boolean;
   mfe_enabled: boolean;
   legacy_enabled: boolean;
   favorito: boolean;
+  favoritavel: boolean;
 
   remote: HubRemoteModule | null;
 
