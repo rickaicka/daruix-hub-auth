@@ -1,6 +1,6 @@
 {
   "name": "@daruix/hub-auth",
-  "version": "0.0.10",
+  "version": "0.0.17",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rickaicka/daruix-hub-auth.git"

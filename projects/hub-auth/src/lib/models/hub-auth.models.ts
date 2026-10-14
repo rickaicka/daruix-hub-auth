@@ -19,12 +19,7 @@ export interface HubModulo {
   favoritavel: boolean;
 
   remote: HubRemoteModule | null;
-
-  /**
-   * Submódulos ou funcionalidades internas exibidas
-   * dentro do card do módulo principal.
-   */
-  children?: HubModulo[];
+  children: HubModulo[];
 }
 
 export interface HubUser {

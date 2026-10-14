@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 
 import {
   HubLoginResponse,
+  HubModulo,
   HubRefreshResponse,
   HubSessionInfo,
   HubUser,
@@ -23,25 +24,24 @@ export class HubSessionService {
   private readonly userKey = inject(HUB_USER_KEY);
   private readonly sessionKey = inject(HUB_SESSION_KEY);
 
-  private readonly usuarioSignal = signal<HubUser | null>(
-    this.loadUserFromStorage()
-  );
+  private readonly usuarioSignal = signal<HubUser | null>(this.loadUserFromStorage());
 
   private readonly accessTokenSignal = signal<string | null>(
-    localStorage.getItem(this.accessTokenKey)
+    localStorage.getItem(this.accessTokenKey),
   );
 
   private readonly refreshTokenSignal = signal<string | null>(
-    localStorage.getItem(this.refreshTokenKey)
+    localStorage.getItem(this.refreshTokenKey),
   );
 
-  private readonly sessaoSignal = signal<HubSessionInfo | null>(
-    this.loadSessionFromStorage()
-  );
+  private readonly sessaoSignal = signal<HubSessionInfo | null>(this.loadSessionFromStorage());
 
   readonly usuario = this.usuarioSignal.asReadonly();
+
   readonly accessToken = this.accessTokenSignal.asReadonly();
+
   readonly refreshToken = this.refreshTokenSignal.asReadonly();
+
   readonly sessao = this.sessaoSignal.asReadonly();
 
   readonly isSessionExpired = computed(() => {
@@ -54,23 +54,15 @@ export class HubSessionService {
     return new Date(sessao.expira_em).getTime() <= Date.now();
   });
 
-  readonly isLoggedIn = computed(() =>
-    !!this.accessToken() &&
-    !!this.usuario() &&
-    !this.isSessionExpired()
+  readonly isLoggedIn = computed(
+    () => !!this.accessToken() && !!this.usuario() && !this.isSessionExpired(),
   );
 
-  readonly userName = computed(() =>
-    this.usuario()?.nome ?? this.usuario()?.username ?? ''
-  );
+  readonly userName = computed(() => this.usuario()?.nome ?? this.usuario()?.username ?? '');
 
-  readonly userPermissions = computed(() =>
-    this.usuario()?.permissoes ?? []
-  );
+  readonly userPermissions = computed(() => this.usuario()?.permissoes ?? []);
 
-  readonly userModules = computed(() =>
-    this.usuario()?.modulos ?? []
-  );
+  readonly userModules = computed(() => this.usuario()?.modulos ?? []);
 
   hasPermission(permission: string): boolean {
     return this.userPermissions().includes(permission);
@@ -87,13 +79,19 @@ export class HubSessionService {
     sessao: HubSessionInfo;
   }): void {
     localStorage.setItem(this.userKey, JSON.stringify(params.usuario));
+
     localStorage.setItem(this.accessTokenKey, params.accessToken);
+
     localStorage.setItem(this.refreshTokenKey, params.refreshToken);
+
     localStorage.setItem(this.sessionKey, JSON.stringify(params.sessao));
 
     this.usuarioSignal.set(params.usuario);
+
     this.accessTokenSignal.set(params.accessToken);
+
     this.refreshTokenSignal.set(params.refreshToken);
+
     this.sessaoSignal.set(params.sessao);
   }
 
@@ -108,28 +106,59 @@ export class HubSessionService {
 
   setRefreshResponse(response: HubRefreshResponse): void {
     localStorage.setItem(this.accessTokenKey, response.access_token);
+
     localStorage.setItem(this.refreshTokenKey, response.refresh_token);
+
     localStorage.setItem(this.sessionKey, JSON.stringify(response.sessao));
 
     this.accessTokenSignal.set(response.access_token);
+
     this.refreshTokenSignal.set(response.refresh_token);
+
     this.sessaoSignal.set(response.sessao);
   }
 
   setUsuario(usuario: HubUser): void {
     localStorage.setItem(this.userKey, JSON.stringify(usuario));
+
     this.usuarioSignal.set(usuario);
   }
 
   setAccessToken(accessToken: string): void {
     localStorage.setItem(this.accessTokenKey, accessToken);
+
     this.accessTokenSignal.set(accessToken);
+  }
+
+  /**
+   * Atualiza uma funcionalidade favoritada em qualquer
+   * nível da árvore de módulos.
+   *
+   * A atualização cria novas referências e atualiza
+   * usuarioSignal + localStorage através do setUsuario().
+   */
+  updateModuleFavorite(slug: string, favorito: boolean): void {
+    const usuario = this.usuario();
+
+    if (!usuario) {
+      return;
+    }
+
+    const modulos = this.updateFavoriteRecursively(usuario.modulos ?? [], slug, favorito);
+
+    this.setUsuario({
+      ...usuario,
+      modulos,
+    });
   }
 
   clearSession(): void {
     localStorage.removeItem(this.userKey);
+
     localStorage.removeItem(this.accessTokenKey);
+
     localStorage.removeItem(this.refreshTokenKey);
+
     localStorage.removeItem(this.sessionKey);
 
     this.usuarioSignal.set(null);
@@ -140,13 +169,32 @@ export class HubSessionService {
 
   reloadFromStorage(): void {
     this.usuarioSignal.set(this.loadUserFromStorage());
+
     this.accessTokenSignal.set(localStorage.getItem(this.accessTokenKey));
+
     this.refreshTokenSignal.set(localStorage.getItem(this.refreshTokenKey));
+
     this.sessaoSignal.set(this.loadSessionFromStorage());
 
     if (this.isSessionExpired()) {
       this.clearSession();
     }
+  }
+
+  private updateFavoriteRecursively(
+    items: HubModulo[],
+    slug: string,
+    favorito: boolean,
+  ): HubModulo[] {
+    return items.map((item) => ({
+      ...item,
+
+      favorito: item.slug === slug ? favorito : item.favorito,
+
+      children: item.children?.length
+        ? this.updateFavoriteRecursively(item.children, slug, favorito)
+        : item.children,
+    }));
   }
 
   private loadUserFromStorage(): HubUser | null {
@@ -160,6 +208,7 @@ export class HubSessionService {
       return JSON.parse(usuario) as HubUser;
     } catch {
       localStorage.removeItem(this.userKey);
+
       return null;
     }
   }
@@ -175,6 +224,7 @@ export class HubSessionService {
       return JSON.parse(sessao) as HubSessionInfo;
     } catch {
       localStorage.removeItem(this.sessionKey);
+
       return null;
     }
   }
